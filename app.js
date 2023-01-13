@@ -3,6 +3,10 @@ const moneyEarnedPerWork = 100;
 let moneyEarned = 0
 const buttonElementDoWork = document.getElementById("doWork");
 const buttonElementAddToBank = document.getElementById("addToBank");
+const spanElementMoneyEarned = document.getElementById("moneyEarned");
+let buttonElementPayLoan = null;
+const spanElementRepayLoanLocation = document.getElementById("repayLoanLocation");
+let payLoanButtonCreated = false;
 //Bank variables
 let bankBalance = 400;
 let currentLoan = 0;
@@ -13,10 +17,10 @@ const spanElementCurrentLoan = document.getElementById("currentLoan");
 const spanElementBankBalance = document.getElementById("bankBalance");
 const buttonElementTakeLoan = document.getElementById("takeLoan");
 //Computer variables
-const spanElementMoneyEarned = document.getElementById("moneyEarned");
 const selectElementComputerList = document.getElementById("computerList");
 const buttonElementBuyComputer = document.getElementById("buyComputer");
 
+//Make sure bankBalance text is equal to the actual amount
 spanElementBankBalance.innerText = bankBalance;
 //Enable button functionalities
 buttonElementDoWork.addEventListener('click',DoWork);
@@ -30,10 +34,38 @@ function DoWork()
     spanElementMoneyEarned.innerText = moneyEarned;
 }
 
+function RepayLoan()
+{
+    let amountRepaid = 0;
+    if(moneyEarned >= currentLoan)
+    {
+        amountRepaid = currentLoan;
+        currentLoan = currentLoan - amountRepaid;
+        moneyEarned = moneyEarned - amountRepaid;
+        takenLoan = false;
+    }
+    else if(moneyEarned < currentLoan)
+    {
+        amountRepaid = moneyEarned;
+        moneyEarned = moneyEarned - amountRepaid;
+        currentLoan = currentLoan - amountRepaid;
+    }
+    spanElementCurrentLoan.innerText = currentLoan;
+    spanElementMoneyEarned.innerText = moneyEarned;
+}
+
 function AddToBank()
 {
     bankBalance = bankBalance + moneyEarned - (moneyEarned*interestRate);
     currentLoan = currentLoan - (moneyEarned*interestRate)
+    if(currentLoan <= 0)
+        {
+            //Reset loan and 
+            //make sure the correct money amount goes to the bank
+            takenLoan = false;
+            bankBalance = bankBalance - currentLoan;
+            currentLoan = 0;
+        }
     moneyEarned = 0;
     spanElementCurrentLoan.innerText = currentLoan;
     spanElementMoneyEarned.innerText = moneyEarned;
@@ -48,21 +80,34 @@ function TakeLoan()
         {
             let bankInput = prompt("Enter your desired loan");
             bankInput = parseInt(bankInput);
+            //Not enough money
             if(bankInput>bankBalance*2)
             {
                 alert("We will not loan you more than double your money!");
             }
-            else if(bankInput <= 0)
+            //Invalid input
+            else if(bankInput <= 0 || isNaN(bankInput))
             {
                 alert("That is not a valid loan number!");
             }
-            else //Loan successfully taken
+            //Loan successfully taken
+            else
             {
                 currentLoan = bankInput;
                 bankBalance = bankBalance + currentLoan;
                 takenLoan = true;
                 spanElementCurrentLoan.innerText = currentLoan;
                 spanElementBankBalance.innerText = bankBalance;
+                if (payLoanButtonCreated == false)
+                {
+                //Create pay loan button
+                buttonElementPayLoan = document.createElement("button");
+                spanElementRepayLoanLocation.appendChild(buttonElementPayLoan);
+                buttonElementPayLoan.innerHTML = "Repay loan";
+                buttonElementPayLoan.addEventListener('click',RepayLoan);
+                payLoanButtonCreated = true;
+                }
+
             }
         }
         else{alert("We will not loan money to you if you do not have money!");}
