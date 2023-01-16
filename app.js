@@ -19,6 +19,13 @@ const buttonElementTakeLoan = document.getElementById("takeLoan");
 //Computer variables
 const selectElementComputerList = document.getElementById("computerList");
 const buttonElementBuyComputer = document.getElementById("buyComputer");
+const spanElementComputerPrice = document.getElementById("computerPrice");
+const spanElementComputerDescription = document.getElementById("computerDescription");
+const spanElemnentComputerStock = document.getElementById("computerStock");
+const imageElementComputerImage = document.getElementById("computerImage");
+let computerCost = 0;
+let computerStock = 0;
+let selectedComputer = 0;
 
 //Make sure bankBalance text is equal to the actual amount
 spanElementBankBalance.innerText = bankBalance;
@@ -26,7 +33,71 @@ spanElementBankBalance.innerText = bankBalance;
 buttonElementDoWork.addEventListener('click',DoWork);
 buttonElementAddToBank.addEventListener('click',AddToBank);
 buttonElementTakeLoan.addEventListener('click',TakeLoan);
+buttonElementBuyComputer.addEventListener('click', buyComputer);
 
+let computers = [];
+
+fetch("https://hickory-quilled-actress.glitch.me/computers")
+.then(response => response.json())
+.then(collectedData => computers = collectedData)
+.then(computers => addComputersToMenu(computers));
+
+const selectComputerFromList = eventCaller =>
+{
+    selectedComputer = computers[eventCaller.target.selectedIndex];
+    spanElementComputerPrice.innerText = selectedComputer.price;
+    spanElementComputerDescription.innerText = selectedComputer.specs;
+    imageElementComputerImage.src = "https://hickory-quilled-actress.glitch.me/" + selectedComputer.image;
+    //Image 5 has the wrong link, it needs to be PNG so we force the link through
+    if (selectedComputer.id == 5)
+    {
+        imageElementComputerImage.src = "https://hickory-quilled-actress.glitch.me/assets/images/5.png";
+    }
+    computerCost = parseInt(selectedComputer.price);
+    computerStock = parseInt(selectedComputer.stock);
+    spanElemnentComputerStock.innerText = computerStock;
+    
+}
+//Function selectComputerFromList is not hoisted so eventlistener needs to be after.
+selectElementComputerList.addEventListener('change',selectComputerFromList);
+
+function addComputersToMenu(computers)
+{
+    computers.forEach(computer => {
+        const computerElement = document.createElement("option");
+        computerElement.value = computer.id;
+        computerElement.appendChild(document.createTextNode(computer.title));
+        selectElementComputerList.appendChild(computerElement);
+    });
+    spanElementComputerPrice.innerText = computers[0].price;
+    spanElementComputerDescription.innerText = computers[0].specs;
+    imageElementComputerImage.src = "https://hickory-quilled-actress.glitch.me/" + computers[0].image;
+    computerCost = parseInt(computers[0].price);
+    computerStock = parseInt(computers[0].stock);
+    selectedComputer = computers[0];
+    spanElemnentComputerStock.innerText = computerStock;
+
+}
+
+function buyComputer()
+{
+    if(computerCost > bankBalance)
+    {
+        alert("You do not have enough money for this item!");
+    }
+    else if(selectedComputer.stock <= 0)
+    {
+        alert("No item of that type in stock");
+    }
+    else
+    {
+        bankBalance = bankBalance - computerCost;
+        spanElementBankBalance.innerText = bankBalance;
+        alert("You have successfully purchased " + selectedComputer.title + " :D");
+        selectedComputer.stock -= 1;
+        spanElemnentComputerStock.innerText = selectedComputer.stock;
+    }
+}
 
 function DoWork()
 {
